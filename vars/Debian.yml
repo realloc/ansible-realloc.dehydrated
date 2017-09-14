@@ -1,0 +1,7 @@
+---
+
+dehydrated_deps:
+  - tar
+  - wget
+  - curl
+  - openssl

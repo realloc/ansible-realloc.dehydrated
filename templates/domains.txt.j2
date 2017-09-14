@@ -1,0 +1,10 @@
+{% if dehydrated_domains is mapping %}
+{% for k, v in dehydrated_domains.items() %}
+{{ k }} {{ v|join(' ') if v != none else '' }}
+{% endfor %}
+{% else %}
+{% for v in dehydrated_domains %}
+{{ v }}
+{% endfor %}
+{% endif %}
+

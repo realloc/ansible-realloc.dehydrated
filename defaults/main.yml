@@ -1,0 +1,101 @@
+---
+
+dehydrated_url: https://raw.githubusercontent.com/lukas2511/dehydrated/v0.4.0/dehydrated
+dehydrated_config_dir: /etc/dehydrated
+dehydrated_log_dir: /var/log/dehydrated
+dehydrated_dir: /opt/letsencrypt
+dehydrated_user: letsencrypt
+dehydrated_group: letsencrypt
+
+dehydrated_domains: []
+
+dehydrated_cron_minute: "*"
+dehydrated_cron_hour: "*"
+dehydrated_cron_day: "*/5"
+dehydrated_cron_weekday: "*"
+dehydrated_cron_month: "*"
+
+# It's not a dictionary because Ansible doesn't merge them by default
+# Each options is a separate variable here.
+
+# Resolve names to addresses of IP version only. (curl)
+# supported values: 4, 6
+# default: <unset>
+#IP_VERSION=
+dehydrated_config_ip_version: 4
+
+# Path to certificate authority (default: https://acme-v01.api.letsencrypt.org/directory)
+dehydrated_config_ca: "https://acme-v01.api.letsencrypt.org/directory"
+
+# Path to certificate authority license terms redirect (default: https://acme-v01.api.letsencrypt.org/terms)
+dehydrated_config_ca_terms: "https://acme-v01.api.letsencrypt.org/terms"
+
+# Path to license agreement (default: <unset>)
+#dehydrated_config_license:
+
+# Which challenge should be used? Currently http-01 and dns-01 are supported
+dehydrated_config_challengetype: "http-01"
+
+# Path to a directory containing additional config files, allowing to override
+# the defaults found in the main configuration file. Additional config files
+# in this directory needs to be named with a '.sh' ending.
+# default: <unset>
+#dehydrated_config_d:
+
+# Base directory for account key, generated certificates and list of domains (default: $SCRIPTDIR -- uses config directory if undefined)
+dehydrated_config_basedir: "{{ dehydrated_config_dir }}"
+
+# File containing the list of domains to request certificates for (default: $BASEDIR/domains.txt)
+dehydrated_config_domains_txt: "{{ dehydrated_config_basedir }}/domains.txt"
+
+# Output directory for generated certificates
+dehydrated_config_certdir: "{{ dehydrated_config_basedir }}/certs"
+
+# Directory for account keys and registration information
+dehydrated_config_accountdir: "{{ dehydrated_config_basedir }}/accounts"
+
+# Output directory for challenge-tokens to be served by webserver or deployed in HOOK (default: /var/www/dehydrated)
+#WELLKNOWN="/var/www/dehydrated"
+dehydrated_config_wellknown: /var/www/dehydrated
+
+# Default keysize for private keys (default: 4096)
+dehydrated_config_keysize: 4096
+
+# Path to openssl config file (default: <unset> - tries to figure out system default)
+#dehydrated_config_openssl_cnf:
+
+# Program or function called in certain situations
+#
+# After generating the challenge-response, or after failed challenge (in this case altname is empty)
+# Given arguments: clean_challenge|deploy_challenge altname token-filename token-content
+#
+# After successfully signing certificate
+# Given arguments: deploy_cert domain path/to/privkey.pem path/to/cert.pem path/to/fullchain.pem
+#
+# BASEDIR and WELLKNOWN variables are exported and can be used in an external program
+# default: <unset>
+#dehydrated_config_hook:
+
+# Chain clean_challenge|deploy_challenge arguments together into one hook call per certificate (default: no)
+dehydrated_config_hook_chain: "no"
+
+# Minimum days before expiration to automatically renew certificate (default: 30)
+dehydrated_config_renew_days: 30
+
+# Regenerate private keys instead of just signing new certificates on renewal (default: yes)
+dehydrated_config_private_key_renew: "yes"
+
+# Create an extra private key for rollover (default: no)
+dehydrated_config_private_key_rollover: "no"
+
+# Which public key algorithm should be used? Supported: rsa, prime256v1 and secp384r1
+dehydrated_config_key_algo: "rsa"
+
+# E-mail to use during the registration (default: <unset>)
+#dehydrated_config_config_email:
+
+# Lockfile location, to prevent concurrent access (default: $BASEDIR/lock)
+dehydrated_config_lockfile: "{{ dehydrated_config_basedir }}/lock"
+
+# Option to add CSR-flag indicating OCSP stapling to be mandatory (default: no)
+dehydrated_config_ocsp_must_stapple: "no"

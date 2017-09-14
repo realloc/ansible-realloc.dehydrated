@@ -1,0 +1,117 @@
+---
+# TODO:
+# - conf.d support
+# - initial run
+
+# Variable setup.
+- name: Include OS-Specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
+
+# Install dependencies
+- include: "setup-{{ ansible_os_family }}.yml"
+
+# Install dehydrated script
+- name: LE home
+  file:
+    path: "{{ dehydrated_dir }}"
+    state: directory
+
+- name: Get dehydrated release archive
+  get_url:
+    url: " {{ dehydrated_url }}"
+    dest: "{{ dehydrated_dir }}/dehydrated"
+    mode: 0775
+
+- name: Ensure there is LE user
+  user:
+    name: "{{ dehydrated_user }}"
+    comment: "Lets Encrypt agent user"
+    createhome: yes
+    shell: /bin/bash
+
+- name: Ensure there is acme-challenge directory
+  file:
+    path: "{{ dehydrated_config_wellknown }}"
+    state: directory
+    mode: 0755
+    owner: "{{ dehydrated_user }}"
+    group: "{{ dehydrated_group }}"
+
+- name: Ensure dehydrated config dirs
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ dehydrated_user }}"
+    group: "{{ dehydrated_group }}"
+    mode: 0700
+  with_items:
+    - "{{ dehydrated_log_dir }}"
+    - "{{ dehydrated_config_basedir }}"
+    - "{{ dehydrated_config_certdir }}"
+    - "{{ dehydrated_config_accountdir }}"
+
+- name: Render dehydrated config file
+  template:
+    src: config.j2
+    dest: "{{ dehydrated_config_dir}}/config"
+    owner: root
+    group: "{{ dehydrated_group }}"
+    mode: 0640
+
+- name: Set dehydrated_main_domains list
+  set_fact:
+    dehydrated_main_domains: |
+      {% if dehydrated_domains is mapping %}
+      {{ dehydrated_domains.keys() }}
+      {% else %}
+      {{ dehydrated_domains }}
+      {% endif %}
+
+- name: Render dehydrated domains.txt
+  template:
+    src: domains.txt.j2
+    dest: "{{ dehydrated_config_dir}}/domains.txt"
+    owner: root
+    group: "{{ dehydrated_group }}"
+    mode: 0640
+
+- name: Do we have any certs for our domains?
+  stat:
+    path: "/etc/dehydrated/certs/{{ item }}/fullchain.pem"
+  register: cert_stats
+  with_items:
+    - "{{ dehydrated_main_domains }}"
+
+- name: Check dirs (first time) for fake certs
+  file:
+    path: "{{ dehydrated_config_certdir }}/{{ item.item }}"
+    state: directory
+    owner: "{{ dehydrated_user }}"
+    group: "{{ dehydrated_group }}"
+    mode: 0700
+  when: item.stat.exists == False
+  with_items:
+    - "{{ cert_stats.results }}"
+
+- name: Generate (first time) fake certs
+  become: yes
+  become_user: "{{ dehydrated_user }}"
+  shell: |
+    openssl req -x509 -nodes -newkey rsa:2048 -days 90 \
+    -keyout {{ dehydrated_config_certdir }}/{{ item.item }}/privkey.pem \
+    -out {{ dehydrated_config_certdir }}/{{ item.item }}/fullchain.pem \
+    -subj "/C=US/ST=Oregon/L=Portland/O=ACME/OU=Org/CN=fake.host"
+  when: item.stat.exists == False
+  with_items:
+    - "{{ cert_stats.results }}"
+
+- name: Ensure LE Agent check is in cron
+  cron:
+    name: dehydrated
+    user: "{{ dehydrated_user }}"
+    minute: "{{ dehydrated_cron_minute }}"
+    hour: "{{ dehydrated_cron_hour }}"
+    day: "{{ dehydrated_cron_day }}"
+    weekday: "{{ dehydrated_cron_weekday }}"
+    month: "{{ dehydrated_cron_month }}"
+    job: "(date; {{ dehydrated_dir }}/dehydrated -c --accept-terms -fc -f {{ dehydrated_config_dir}}/config) >> {{ dehydrated_log_dir }}/cron.log 2>&1"

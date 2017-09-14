@@ -1,0 +1,8 @@
+---
+
+- name: Ensure dependencies state
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ dehydrated_deps }}"
