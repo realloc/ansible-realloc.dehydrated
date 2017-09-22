@@ -9,8 +9,8 @@ dehydrated_group: letsencrypt
 
 dehydrated_domains: []
 
-dehydrated_cron_minute: "*"
-dehydrated_cron_hour: "*"
+dehydrated_cron_minute: "20"
+dehydrated_cron_hour: "04"
 dehydrated_cron_day: "*/5"
 dehydrated_cron_weekday: "*"
 dehydrated_cron_month: "*"
