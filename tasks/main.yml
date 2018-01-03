@@ -77,7 +77,7 @@
 
 - name: Do we have any certs for our domains?
   stat:
-    path: "/etc/dehydrated/certs/{{ item }}/fullchain.pem"
+    path: "{{ dehydrated_config_certdir }}/{{ item }}/fullchain.pem"
   register: cert_stats
   with_items:
     - "{{ dehydrated_main_domains }}"
